@@ -11,6 +11,7 @@
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
+    "@types/uuid": "^10.0.0",
     "ag-psd": "^20.2.0",
     "fast-png": "^6.2.0",
     "konva": "^9.3.13",
@@ -21,7 +22,8 @@
     "react-dom": "^18",
     "react-konva": "^18.2.10",
     "react-select": "^5.8.0",
-    "use-image": "^1.1.1"
+    "use-image": "^1.1.1",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
