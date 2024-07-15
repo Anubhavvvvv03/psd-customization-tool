@@ -2,7 +2,7 @@
 // components/PsdEditor.tsx
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Stage, Layer, Image as KonvaImage, Text as KonvaText, Transformer } from 'react-konva';
+import { Stage, Layer, Image as KonvaImage, Text as KonvaText, Transformer, Rect } from 'react-konva';
 import { readPsd } from 'ag-psd';
 import useImage from 'use-image';
 import Select from 'react-select';
@@ -19,6 +19,13 @@ const PsdEditor: React.FC = () => {
   const logoTransformerRef = useRef<any>(null);
   const transformerRef = useRef<any>(null);
   const selectedTextRef = useRef<any>(null);
+
+  const boundary = {
+    x: 50,
+    y: 50,
+    width: 700,
+    height: 500
+  };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -77,11 +84,11 @@ const PsdEditor: React.FC = () => {
 
     if (style === 'bold') {
       updatedFontStyle = updatedFontStyle.includes('bold')
-        ? updatedFontStyle.filter((s:any) => s !== 'bold')
+        ? updatedFontStyle.filter((s: any) => s !== 'bold')
         : [...updatedFontStyle, 'bold'];
     } else if (style === 'italic') {
       updatedFontStyle = updatedFontStyle.includes('italic')
-        ? updatedFontStyle.filter((s:any) => s !== 'italic')
+        ? updatedFontStyle.filter((s: any) => s !== 'italic')
         : [...updatedFontStyle, 'italic'];
     }
 
@@ -130,6 +137,30 @@ const PsdEditor: React.FC = () => {
 
   const [image] = useImage(psdImage || '');
   const [logoImage] = useImage(logo || '');
+
+  const isWithinBoundary = (x: number, y: number, width: number, height: number) => {
+    return (
+      x >= boundary.x &&
+      y >= boundary.y &&
+      x + width <= boundary.x + boundary.width &&
+      y + height <= boundary.y + boundary.height
+    );
+  };
+
+  const handleDragMove = (e: any, id: string | null) => {
+    const node = e.target;
+    const newX = node.x();
+    const newY = node.y();
+    const width = node.width() * node.scaleX();
+    const height = node.height() * node.scaleY();
+
+    if (!isWithinBoundary(newX, newY, width, height)) {
+      node.position({
+        x: Math.min(Math.max(newX, boundary.x), boundary.x + boundary.width - width),
+        y: Math.min(Math.max(newY, boundary.y), boundary.y + boundary.height - height)
+      });
+    }
+  };
 
   return (
     <div className="flex h-screen">
@@ -234,6 +265,15 @@ const PsdEditor: React.FC = () => {
           <Stage width={800} height={600}>
             <Layer>
               <KonvaImage image={image} />
+              <Rect
+                x={boundary.x}
+                y={boundary.y}
+                width={boundary.width}
+                height={boundary.height}
+                stroke="red"
+                strokeWidth={2}
+                dash={[4, 4]}
+              />
               {texts.map((text) => (
                 <React.Fragment key={text.id}>
                   <KonvaText
@@ -246,6 +286,7 @@ const PsdEditor: React.FC = () => {
                     fontFamily={text.fontFamily}
                     draggable
                     onClick={() => handleSelectText(text.id)}
+                    onDragMove={(e) => handleDragMove(e, text.id)}
                     ref={text.id === selectedTextId ? selectedTextRef : null}
                     fontStyle={text.fontStyle}
                   />
@@ -265,12 +306,15 @@ const PsdEditor: React.FC = () => {
                     draggable
                     ref={logoRef}
                     onClick={() => handleSelectText(null)}
+                    onDragMove={(e) => handleDragMove(e, null)}
                   />
                   <Transformer
                     ref={logoTransformerRef}
                     boundBoxFunc={(oldBox, newBox) => {
-                      // Limiting the minimum size of the transformer
                       if (newBox.width < 10 || newBox.height < 10) {
+                        return oldBox;
+                      }
+                      if (!isWithinBoundary(newBox.x, newBox.y, newBox.width, newBox.height)) {
                         return oldBox;
                       }
                       return newBox;

@@ -14,6 +14,8 @@
     "@types/uuid": "^10.0.0",
     "ag-psd": "^20.2.0",
     "fast-png": "^6.2.0",
+    "file-saver": "^2.0.5",
+    "jszip": "^3.10.1",
     "konva": "^9.3.13",
     "next": "14.2.4",
     "psd": "^3.4.0",
@@ -26,6 +28,7 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
